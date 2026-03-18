@@ -10,5 +10,5 @@
 1. Open the notebook: `data_structures_assignment.ipynb`
 2. Run all cells sequentially
 
-## Notes
-- Implemented using basic Python (no external libraries)
+## Github link 
+https://github.com/SuryanshTiwari18/GenAi-assignments.git
