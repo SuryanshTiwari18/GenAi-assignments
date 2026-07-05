@@ -1,0 +1,27 @@
+[
+    {
+        "Product":"Laptop",
+        "Price":65000,
+        "Category":"Electronics"
+    },
+    {
+        "Product":"Phone",
+        "Price":30000,
+        "Category":"Electronics"
+    },
+    {
+        "Product":"Shoes",
+        "Price":4000,
+        "Category":"Fashion"
+    },
+    {
+        "Product":"Watch",
+        "Price":5000,
+        "Category":"Accessories"
+    },
+    {
+        "Product":"Bag",
+        "Price":2500,
+        "Category":"Fashion"
+    }
+]
