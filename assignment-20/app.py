@@ -3,49 +3,68 @@ import pandas as pd
 import pickle
 from sklearn.metrics.pairwise import cosine_similarity
 
+
+# -----------------------------------------
+# Load Data
+# -----------------------------------------
 @st.cache_resource
 def load_data():
-    print("Loading dataframe...")
-
     df = pickle.load(open("books.pkl", "rb"))
     tfidf = pickle.load(open("tfidf_vectorizer.pkl", "rb"))
 
-    print("Creating TF-IDF matrix...")
+    # Create TF-IDF matrix only once
     tfidf_matrix = tfidf.transform(df["combined_text"])
 
-    print("Computing cosine similarity...")
-    cosine_sim = cosine_similarity(tfidf_matrix)
-
-    print("Finished!")
-
+    # Mapping from title to dataframe index
     indices = pd.Series(df.index, index=df["title"]).drop_duplicates()
 
-    return df, cosine_sim, indices
+    return df, tfidf_matrix, indices
 
 
-df, cosine_sim, indices = load_data()
+df, tfidf_matrix, indices = load_data()
 
 
+# -----------------------------------------
+# Recommendation Function
+# -----------------------------------------
 def recommend_books(book_title, top_n=5):
+
     idx = indices[book_title]
-    similarity_scores = list(enumerate(cosine_sim[idx]))
-    similarity_scores = sorted(
-        similarity_scores,
+
+    # Compute similarity only for the selected book
+    similarity_scores = cosine_similarity(
+        tfidf_matrix[idx],
+        tfidf_matrix
+    ).flatten()
+
+    similar_books = list(enumerate(similarity_scores))
+
+    similar_books = sorted(
+        similar_books,
         key=lambda x: x[1],
         reverse=True
     )
-    similarity_scores = similarity_scores[1:top_n + 1]
+
+    # Ignore the selected book itself
+    similar_books = similar_books[1:top_n + 1]
+
     recommendations = []
-    for i, score in similarity_scores:
+
+    for i, score in similar_books:
+
         recommendations.append({
             "Title": df.iloc[i]["title"],
             "Author": df.iloc[i]["authors"],
             "Category": df.iloc[i]["categories"],
-            "Similarity Score": round(score, 3)
+            "Similarity Score": round(float(score), 3)
         })
+
     return recommendations
 
 
+# -----------------------------------------
+# Streamlit UI
+# -----------------------------------------
 st.set_page_config(
     page_title="Book Recommendation System",
     page_icon="📚",
@@ -55,7 +74,7 @@ st.set_page_config(
 st.title("📚 Book Recommendation System")
 
 st.write(
-    "Select a book from the dropdown menu to get personalized recommendations based on content similarity."
+    "Select a book from the dropdown menu to receive content-based recommendations."
 )
 
 selected_book = st.selectbox(
@@ -63,13 +82,22 @@ selected_book = st.selectbox(
     sorted(df["title"].unique())
 )
 
-
 if st.button("Recommend Books"):
-    recommendations = recommend_books(selected_book)
+
+    with st.spinner("Finding similar books..."):
+
+        recommendations = recommend_books(selected_book)
+
     st.subheader("Recommended Books")
+
     for i, book in enumerate(recommendations, start=1):
+
         st.markdown(f"### {i}. {book['Title']}")
+
         st.write(f"**Author:** {book['Author']}")
+
         st.write(f"**Category:** {book['Category']}")
+
         st.write(f"**Similarity Score:** {book['Similarity Score']}")
+
         st.divider()
