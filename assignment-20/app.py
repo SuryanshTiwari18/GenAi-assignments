@@ -5,11 +5,21 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 @st.cache_resource
 def load_data():
+    print("Loading dataframe...")
+
     df = pickle.load(open("books.pkl", "rb"))
     tfidf = pickle.load(open("tfidf_vectorizer.pkl", "rb"))
+
+    print("Creating TF-IDF matrix...")
     tfidf_matrix = tfidf.transform(df["combined_text"])
+
+    print("Computing cosine similarity...")
     cosine_sim = cosine_similarity(tfidf_matrix)
+
+    print("Finished!")
+
     indices = pd.Series(df.index, index=df["title"]).drop_duplicates()
+
     return df, cosine_sim, indices
 
 
